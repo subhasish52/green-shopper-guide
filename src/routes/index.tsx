@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import earth from "@/assets/earth-3d.png";
 import satellite from "@/assets/satellite-3d.png";
+import { DownloadFunnelModal } from "@/components/DownloadFunnelModal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,6 +44,7 @@ function downloadExtension() {
 
 function Index() {
   const [spinning, setSpinning] = useState(true);
+  const [funnelOpen, setFunnelOpen] = useState(false);
   const sceneRef = useRef<HTMLDivElement>(null);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
 
@@ -131,7 +133,7 @@ function Index() {
             alternatives while you shop on Amazon, Shopify, eBay & more.
           </p>
           <button
-            onClick={downloadExtension}
+            onClick={() => setFunnelOpen(true)}
             className="group relative inline-flex items-center gap-3 rounded-full bg-cta px-8 py-4 text-base font-bold text-primary-foreground shadow-glow transition hover:scale-105 sm:px-10 sm:py-5 sm:text-lg"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -257,6 +259,8 @@ function Index() {
           © {new Date().getFullYear()} EnviroX · Shop Honest
         </p>
       </footer>
+
+      <DownloadFunnelModal open={funnelOpen} onClose={() => setFunnelOpen(false)} />
     </main>
   );
 }
