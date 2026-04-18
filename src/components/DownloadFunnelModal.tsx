@@ -268,7 +268,7 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
             >
               <ChoiceRow
                 primary={{ label: "Yes, count me in", onClick: goToSuccess }}
-                secondary={{ label: "No", onClick: () => setStep(4) }}
+                secondary={{ label: "No", onClick: () => choose("Would you pay for unlimited scans and deeper product insights?", "No", 4) }}
               />
             </StepShell>
           )}
