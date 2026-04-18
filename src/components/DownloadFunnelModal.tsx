@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DownloadFunnelModalProps {
   open: boolean;
@@ -27,6 +28,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const answersRef = useRef<{ step: StepId; question: string; answer: string }[]>([]);
+  const savedRef = useRef(false);
 
   // Reset on open
   useEffect(() => {
@@ -37,6 +40,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
       setErrors({});
       setSubmitting(false);
       setMounted(true);
+      answersRef.current = [];
+      savedRef.current = false;
     } else {
       const t = setTimeout(() => setMounted(false), 200);
       return () => clearTimeout(t);
@@ -64,6 +69,38 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
     });
   };
 
+  const recordAnswer = (question: string, answer: string) => {
+    answersRef.current = [
+      ...answersRef.current,
+      { step: step as StepId, question, answer },
+    ];
+  };
+
+  const choose = (question: string, answer: string, next: StepId) => {
+    recordAnswer(question, answer);
+    setStep(next);
+  };
+
+  const saveLead = async (completedStep: string) => {
+    if (savedRef.current) return;
+    savedRef.current = true;
+    try {
+      const { error } = await supabase.from("leads").insert({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        answers: answersRef.current,
+        completed_step: completedStep,
+      });
+      if (error) {
+        console.error("Failed to save lead:", error);
+        savedRef.current = false;
+      }
+    } catch (err) {
+      console.error("Failed to save lead:", err);
+      savedRef.current = false;
+    }
+  };
+
   const goToForm = () => setStep(2);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -80,14 +117,17 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
     }
     setErrors({});
     setSubmitting(true);
-    // Simulate brief processing for UX feedback
-    setTimeout(() => {
+    saveLead("form_submitted").finally(() => {
       setSubmitting(false);
       setStep(3);
-    }, 700);
+    });
   };
 
   const goToSuccess = () => {
+    recordAnswer(
+      "Would you pay for unlimited scans and deeper product insights?",
+      "Yes",
+    );
     setStep("success");
     setTimeout(fireConfetti, 150);
   };
@@ -162,8 +202,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="One quick question before you download."
             >
               <ChoiceRow
-                primary={{ label: "Yes 🌱", onClick: goToForm }}
-                secondary={{ label: "No", onClick: () => setStep(4) }}
+                primary={{ label: "Yes 🌱", onClick: () => { recordAnswer("Do you want to save the environment?", "Yes"); goToForm(); } }}
+                secondary={{ label: "No", onClick: () => choose("Do you want to save the environment?", "No", 4) }}
               />
             </StepShell>
           )}
@@ -228,7 +268,7 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
             >
               <ChoiceRow
                 primary={{ label: "Yes, count me in", onClick: goToSuccess }}
-                secondary={{ label: "No", onClick: () => setStep(4) }}
+                secondary={{ label: "No", onClick: () => choose("Would you pay for unlimited scans and deeper product insights?", "No", 4) }}
               />
             </StepShell>
           )}
@@ -239,8 +279,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="Do you at least want to know if you're getting fooled?"
             >
               <ChoiceRow
-                primary={{ label: "Yes, show me", onClick: goToForm }}
-                secondary={{ label: "Nope", onClick: () => setStep(5) }}
+                primary={{ label: "Yes, show me", onClick: () => { recordAnswer("Do you at least want to know if you're getting fooled?", "Yes"); goToForm(); } }}
+                secondary={{ label: "Nope", onClick: () => choose("Do you at least want to know if you're getting fooled?", "No", 5) }}
               />
             </StepShell>
           )}
@@ -251,8 +291,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="…without knowing what they actually are?"
             >
               <ChoiceRow
-                primary={{ label: "Okay, fine", onClick: goToForm }}
-                secondary={{ label: "Still no", onClick: () => setStep(6) }}
+                primary={{ label: "Okay, fine", onClick: () => { recordAnswer("So you're okay paying for things without knowing what they actually are?", "Okay, fine"); goToForm(); } }}
+                secondary={{ label: "Still no", onClick: () => choose("So you're okay paying for things without knowing what they actually are?", "Still no", 6) }}
               />
             </StepShell>
           )}
@@ -263,8 +303,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="Do you want early access before everyone else figures this out?"
             >
               <ChoiceRow
-                primary={{ label: "Yes, early access", onClick: goToForm }}
-                secondary={{ label: "No", onClick: () => setStep(7) }}
+                primary={{ label: "Yes, early access", onClick: () => { recordAnswer("Do you want early access before everyone else figures this out?", "Yes"); goToForm(); } }}
+                secondary={{ label: "No", onClick: () => choose("Do you want early access before everyone else figures this out?", "No", 7) }}
               />
             </StepShell>
           )}
@@ -275,7 +315,7 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="Save yourself the trip."
             >
               <button
-                onClick={goToForm}
+                onClick={() => { recordAnswer("You'll probably come back later anyway.", "Fine. Give me access"); goToForm(); }}
                 className="mt-2 w-full rounded-full bg-gradient-to-r from-primary to-accent px-6 py-4 text-base font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] hover:shadow-xl"
               >
                 Fine. Give me access →
