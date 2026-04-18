@@ -315,7 +315,7 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="Save yourself the trip."
             >
               <button
-                onClick={goToForm}
+                onClick={() => { recordAnswer("You'll probably come back later anyway.", "Fine. Give me access"); goToForm(); }}
                 className="mt-2 w-full rounded-full bg-gradient-to-r from-primary to-accent px-6 py-4 text-base font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] hover:shadow-xl"
               >
                 Fine. Give me access →
