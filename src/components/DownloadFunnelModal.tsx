@@ -69,6 +69,38 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
     });
   };
 
+  const recordAnswer = (question: string, answer: string) => {
+    answersRef.current = [
+      ...answersRef.current,
+      { step: step as StepId, question, answer },
+    ];
+  };
+
+  const choose = (question: string, answer: string, next: StepId) => {
+    recordAnswer(question, answer);
+    setStep(next);
+  };
+
+  const saveLead = async (completedStep: string) => {
+    if (savedRef.current) return;
+    savedRef.current = true;
+    try {
+      const { error } = await supabase.from("leads").insert({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        answers: answersRef.current,
+        completed_step: completedStep,
+      });
+      if (error) {
+        console.error("Failed to save lead:", error);
+        savedRef.current = false;
+      }
+    } catch (err) {
+      console.error("Failed to save lead:", err);
+      savedRef.current = false;
+    }
+  };
+
   const goToForm = () => setStep(2);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,14 +117,17 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
     }
     setErrors({});
     setSubmitting(true);
-    // Simulate brief processing for UX feedback
-    setTimeout(() => {
+    saveLead("form_submitted").finally(() => {
       setSubmitting(false);
       setStep(3);
-    }, 700);
+    });
   };
 
   const goToSuccess = () => {
+    recordAnswer(
+      "Would you pay for unlimited scans and deeper product insights?",
+      "Yes",
+    );
     setStep("success");
     setTimeout(fireConfetti, 150);
   };
