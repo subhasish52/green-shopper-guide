@@ -7,7 +7,7 @@ interface DownloadFunnelModalProps {
   onClose: () => void;
 }
 
-type StepId = 1 | 2 | 3 | 4 | 5 | 6 | "success";
+type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | "success";
 
 const DOWNLOAD_URL =
   "https://drive.usercontent.google.com/download?id=1voeK6RjYygzLMSkBG39H9vIhwcJUBa7Z&export=download";
@@ -17,22 +17,25 @@ const formSchema = z.object({
   email: z.string().trim().email("Enter a valid email").max(160, "Too long"),
 });
 
-const QUESTION_STEPS: StepId[] = [1, 3, 4, 5, 6];
+// Question steps used for progress (excludes form & success)
+const QUESTION_STEPS: StepId[] = [1, 3, 4, 5, 6, 7];
 
 export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps) {
   const [step, setStep] = useState<StepId>(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Reset every time it opens
+  // Reset on open
   useEffect(() => {
     if (open) {
       setStep(1);
       setName("");
       setEmail("");
       setErrors({});
+      setSubmitting(false);
       setMounted(true);
     } else {
       const t = setTimeout(() => setMounted(false), 200);
@@ -40,7 +43,7 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
     }
   }, [open]);
 
-  // Esc to close
+  // Esc to close + lock scroll
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -54,8 +57,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
 
   const fireConfetti = () => {
     confetti({
-      particleCount: 140,
-      spread: 80,
+      particleCount: 160,
+      spread: 90,
       origin: { y: 0.6 },
       colors: ["#34d399", "#22d3ee", "#a7f3d0", "#67e8f9"],
     });
@@ -76,11 +79,20 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
       return;
     }
     setErrors({});
+    setSubmitting(true);
+    // Simulate brief processing for UX feedback
+    setTimeout(() => {
+      setSubmitting(false);
+      setStep(3);
+    }, 700);
+  };
+
+  const goToSuccess = () => {
     setStep("success");
     setTimeout(fireConfetti, 150);
   };
 
-  // Progress: only count question steps (skip form/final)
+  // Progress
   const progressIndex =
     step === 2 || step === "success"
       ? QUESTION_STEPS.length
@@ -151,58 +163,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
             >
               <ChoiceRow
                 primary={{ label: "Yes 🌱", onClick: goToForm }}
-                secondary={{ label: "No", onClick: () => setStep(3) }}
+                secondary={{ label: "No", onClick: () => setStep(4) }}
               />
-            </StepShell>
-          )}
-
-          {step === 3 && (
-            <StepShell
-              title="Fair. But you're still buying products."
-              subtitle="Do you at least want to know if you're getting fooled?"
-            >
-              <ChoiceRow
-                primary={{ label: "Yes, show me", onClick: goToForm }}
-                secondary={{ label: "Nope", onClick: () => setStep(4) }}
-              />
-            </StepShell>
-          )}
-
-          {step === 4 && (
-            <StepShell
-              title="So you're okay paying for things…"
-              subtitle="…without knowing what they actually are?"
-            >
-              <ChoiceRow
-                primary={{ label: "Okay, fine", onClick: goToForm }}
-                secondary={{ label: "Still no", onClick: () => setStep(5) }}
-              />
-            </StepShell>
-          )}
-
-          {step === 5 && (
-            <StepShell
-              title="Alright. Last chance."
-              subtitle="Do you want early access before everyone else figures this out?"
-            >
-              <ChoiceRow
-                primary={{ label: "Yes, early access", onClick: goToForm }}
-                secondary={{ label: "No", onClick: () => setStep(6) }}
-              />
-            </StepShell>
-          )}
-
-          {step === 6 && (
-            <StepShell
-              title="You'll probably come back later anyway."
-              subtitle="Save yourself the trip."
-            >
-              <button
-                onClick={goToForm}
-                className="mt-2 w-full rounded-full bg-gradient-to-r from-primary to-accent px-6 py-4 text-base font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] hover:shadow-xl"
-              >
-                Fine. Give me access →
-              </button>
             </StepShell>
           )}
 
@@ -222,7 +184,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
                     onChange={(e) => setName(e.target.value)}
                     maxLength={80}
                     placeholder="Jane Doe"
-                    className="w-full rounded-2xl border border-border/60 bg-background/60 px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    disabled={submitting}
+                    className="w-full rounded-2xl border border-border/60 bg-background/60 px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
                   />
                   {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                 </div>
@@ -236,30 +199,100 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
                     onChange={(e) => setEmail(e.target.value)}
                     maxLength={160}
                     placeholder="jane@example.com"
-                    className="w-full rounded-2xl border border-border/60 bg-background/60 px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    disabled={submitting}
+                    className="w-full rounded-2xl border border-border/60 bg-background/60 px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
                   />
                   {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
                 </div>
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-gradient-to-r from-primary to-accent px-6 py-4 text-base font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] hover:shadow-xl"
+                  disabled={submitting}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-accent px-6 py-4 text-base font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] hover:shadow-xl disabled:opacity-80 disabled:hover:scale-100"
                 >
-                  Continue →
+                  {submitting ? (
+                    <>
+                      <Spinner /> Processing…
+                    </>
+                  ) : (
+                    <>Continue →</>
+                  )}
                 </button>
               </form>
             </StepShell>
           )}
 
+          {step === 3 && (
+            <StepShell
+              title="Would you pay for unlimited scans and deeper product insights?"
+              subtitle="Help us build the trust layer for e-commerce."
+            >
+              <ChoiceRow
+                primary={{ label: "Yes, count me in", onClick: goToSuccess }}
+                secondary={{ label: "No", onClick: () => setStep(4) }}
+              />
+            </StepShell>
+          )}
+
+          {step === 4 && (
+            <StepShell
+              title="Fair. But you're still buying products."
+              subtitle="Do you at least want to know if you're getting fooled?"
+            >
+              <ChoiceRow
+                primary={{ label: "Yes, show me", onClick: goToForm }}
+                secondary={{ label: "Nope", onClick: () => setStep(5) }}
+              />
+            </StepShell>
+          )}
+
+          {step === 5 && (
+            <StepShell
+              title="So you're okay paying for things…"
+              subtitle="…without knowing what they actually are?"
+            >
+              <ChoiceRow
+                primary={{ label: "Okay, fine", onClick: goToForm }}
+                secondary={{ label: "Still no", onClick: () => setStep(6) }}
+              />
+            </StepShell>
+          )}
+
+          {step === 6 && (
+            <StepShell
+              title="Alright. Last chance."
+              subtitle="Do you want early access before everyone else figures this out?"
+            >
+              <ChoiceRow
+                primary={{ label: "Yes, early access", onClick: goToForm }}
+                secondary={{ label: "No", onClick: () => setStep(7) }}
+              />
+            </StepShell>
+          )}
+
+          {step === 7 && (
+            <StepShell
+              title="You'll probably come back later anyway."
+              subtitle="Save yourself the trip."
+            >
+              <button
+                onClick={goToForm}
+                className="mt-2 w-full rounded-full bg-gradient-to-r from-primary to-accent px-6 py-4 text-base font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] hover:shadow-xl"
+              >
+                Fine. Give me access →
+              </button>
+            </StepShell>
+          )}
+
           {step === "success" && (
             <div className="py-4 text-center animate-in fade-in zoom-in-95 duration-500">
-              <div className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-3xl shadow-lg">
+              <div className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-3xl shadow-lg animate-pulse-glow">
                 🎉
               </div>
               <h2 id="funnel-title" className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
                 Hurray! You're in!
               </h2>
               <p className="mx-auto mt-3 max-w-sm text-sm text-foreground/70 sm:text-base">
-                {name ? `Thanks, ${name.split(" ")[0]}. ` : ""}Your download is ready.
+                {name ? `Thanks, ${name.split(" ")[0]}. ` : ""}You now have early access. Your download is ready.
               </p>
               <a
                 href={DOWNLOAD_URL}
@@ -331,5 +364,20 @@ function ChoiceRow({
         {secondary.label}
       </button>
     </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg
+      className="h-5 w-5 animate-spin"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.2-8.55" />
+    </svg>
   );
 }
