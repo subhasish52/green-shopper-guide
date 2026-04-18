@@ -303,8 +303,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="Do you want early access before everyone else figures this out?"
             >
               <ChoiceRow
-                primary={{ label: "Yes, early access", onClick: goToForm }}
-                secondary={{ label: "No", onClick: () => setStep(7) }}
+                primary={{ label: "Yes, early access", onClick: () => { recordAnswer("Do you want early access before everyone else figures this out?", "Yes"); goToForm(); } }}
+                secondary={{ label: "No", onClick: () => choose("Do you want early access before everyone else figures this out?", "No", 7) }}
               />
             </StepShell>
           )}
