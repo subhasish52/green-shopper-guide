@@ -202,8 +202,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="One quick question before you download."
             >
               <ChoiceRow
-                primary={{ label: "Yes 🌱", onClick: goToForm }}
-                secondary={{ label: "No", onClick: () => setStep(4) }}
+                primary={{ label: "Yes 🌱", onClick: () => { recordAnswer("Do you want to save the environment?", "Yes"); goToForm(); } }}
+                secondary={{ label: "No", onClick: () => choose("Do you want to save the environment?", "No", 4) }}
               />
             </StepShell>
           )}
