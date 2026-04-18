@@ -131,19 +131,59 @@ function Index() {
 
         {/* Earth + CTA */}
         <div className="relative mt-8 flex w-full justify-center">
-          {/* Earth */}
-          <div className="relative">
-            <div className="absolute inset-0 -z-10 animate-pulse-glow rounded-full"
-              style={{ background: "radial-gradient(circle, oklch(0.75 0.2 155 / 0.55), transparent 65%)" }} />
-            <img
-              src={earth}
-              alt="3D Earth"
-              width={1280}
-              height={1280}
-              className="h-[360px] w-[360px] animate-float-slow drop-shadow-[0_40px_60px_rgba(0,0,0,0.7)] sm:h-[520px] sm:w-[520px] md:h-[620px] md:w-[620px]"
+          <div className="relative perspective-scene">
+            {/* Outer atmospheric halo */}
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 m-auto h-[130%] w-[130%] animate-pulse-glow rounded-full blur-2xl"
+              style={{
+                background:
+                  "radial-gradient(circle, oklch(0.78 0.2 175 / 0.55) 0%, oklch(0.65 0.18 200 / 0.25) 40%, transparent 70%)",
+              }}
             />
-            {/* orbit ring */}
-            <div className="pointer-events-none absolute inset-0 m-auto h-[120%] w-[120%] -translate-y-2 rounded-full border border-primary/20 animate-spin-slow" />
+            {/* Inner cyan rim glow */}
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 m-auto h-[105%] w-[105%] rounded-full blur-md"
+              style={{
+                background:
+                  "radial-gradient(circle, transparent 60%, oklch(0.82 0.18 180 / 0.55) 72%, transparent 80%)",
+              }}
+            />
+
+            {/* Earth wrapper for tilt + rotation */}
+            <div className="relative animate-float-slow [transform-style:preserve-3d]">
+              <div className="earth-tilt animate-spin-very-slow relative">
+                <img
+                  src={earth}
+                  alt="3D Earth"
+                  width={1280}
+                  height={1280}
+                  className="h-[360px] w-[360px] select-none drop-shadow-[0_50px_70px_rgba(0,0,0,0.75)] sm:h-[520px] sm:w-[520px] md:h-[620px] md:w-[620px]"
+                />
+                {/* Sphere shading overlay for extra 3D depth */}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-full mix-blend-overlay"
+                  style={{
+                    background:
+                      "radial-gradient(circle at 30% 25%, oklch(1 0 0 / 0.35) 0%, transparent 35%), radial-gradient(circle at 70% 75%, oklch(0.05 0.05 240 / 0.55) 0%, transparent 55%)",
+                  }}
+                />
+                {/* Atmosphere ring on sphere edge */}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-full"
+                  style={{
+                    boxShadow:
+                      "inset 0 0 60px 8px oklch(0.85 0.18 180 / 0.45), inset -30px -30px 80px 0 oklch(0.05 0.05 240 / 0.5)",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Orbit rings */}
+            <div className="pointer-events-none absolute inset-0 m-auto h-[122%] w-[122%] -translate-y-2 rounded-full border border-primary/25 animate-spin-slow" />
+            <div
+              className="pointer-events-none absolute inset-0 m-auto h-[140%] w-[140%] rounded-full border border-accent/15 animate-spin-slow"
+              style={{ animationDirection: "reverse", animationDuration: "120s" }}
+            />
 
             {/* Accept mission CTA */}
             <button
