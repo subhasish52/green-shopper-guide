@@ -28,6 +28,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const answersRef = useRef<{ step: StepId; question: string; answer: string }[]>([]);
+  const savedRef = useRef(false);
 
   // Reset on open
   useEffect(() => {
@@ -38,6 +40,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
       setErrors({});
       setSubmitting(false);
       setMounted(true);
+      answersRef.current = [];
+      savedRef.current = false;
     } else {
       const t = setTimeout(() => setMounted(false), 200);
       return () => clearTimeout(t);
