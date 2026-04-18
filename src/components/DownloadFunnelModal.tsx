@@ -279,8 +279,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="Do you at least want to know if you're getting fooled?"
             >
               <ChoiceRow
-                primary={{ label: "Yes, show me", onClick: goToForm }}
-                secondary={{ label: "Nope", onClick: () => setStep(5) }}
+                primary={{ label: "Yes, show me", onClick: () => { recordAnswer("Do you at least want to know if you're getting fooled?", "Yes"); goToForm(); } }}
+                secondary={{ label: "Nope", onClick: () => choose("Do you at least want to know if you're getting fooled?", "No", 5) }}
               />
             </StepShell>
           )}
