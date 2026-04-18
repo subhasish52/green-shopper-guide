@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import earth from "@/assets/earth-3d.png";
 import satellite from "@/assets/satellite-3d.png";
+import { DownloadFunnelModal } from "@/components/DownloadFunnelModal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
