@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DownloadFunnelModalProps {
   open: boolean;
