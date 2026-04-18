@@ -291,8 +291,8 @@ export function DownloadFunnelModal({ open, onClose }: DownloadFunnelModalProps)
               subtitle="…without knowing what they actually are?"
             >
               <ChoiceRow
-                primary={{ label: "Okay, fine", onClick: goToForm }}
-                secondary={{ label: "Still no", onClick: () => setStep(6) }}
+                primary={{ label: "Okay, fine", onClick: () => { recordAnswer("So you're okay paying for things without knowing what they actually are?", "Okay, fine"); goToForm(); } }}
+                secondary={{ label: "Still no", onClick: () => choose("So you're okay paying for things without knowing what they actually are?", "Still no", 6) }}
               />
             </StepShell>
           )}
