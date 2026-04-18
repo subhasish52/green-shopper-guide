@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import earth from "@/assets/earth-3d.png";
 import satellite from "@/assets/satellite-3d.png";
-import enviroxTitle from "@/assets/envirox-title.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,23 +43,48 @@ function downloadExtension() {
 
 function Index() {
   const [spinning, setSpinning] = useState(true);
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+
+  // Mouse parallax
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      setParallax({ x, y });
+    };
+    window.addEventListener("mousemove", handler);
+    return () => window.removeEventListener("mousemove", handler);
+  }, []);
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-space text-foreground">
       {/* Starfield layers */}
-      <div className="pointer-events-none absolute inset-0 starfield opacity-90" />
-      <div className="pointer-events-none absolute inset-0 starfield opacity-50 animate-twinkle" />
+      <div
+        className="pointer-events-none absolute inset-0 starfield opacity-90"
+        style={{ transform: `translate3d(${parallax.x * -8}px, ${parallax.y * -8}px, 0)` }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 starfield opacity-50 animate-twinkle"
+        style={{ transform: `translate3d(${parallax.x * -16}px, ${parallax.y * -16}px, 0)` }}
+      />
 
-      {/* Soft eco glow */}
-      <div className="pointer-events-none absolute left-1/2 top-[55%] -z-0 h-[700px] w-[700px] -translate-x-1/2 rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, oklch(0.75 0.2 155 / 0.35), transparent 65%)" }} />
+      {/* Soft eco glow behind earth */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-[70%] -z-0 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(0.78 0.2 175 / 0.45), oklch(0.65 0.18 200 / 0.18) 45%, transparent 70%)",
+        }}
+      />
 
       {/* Top bar */}
-      <header className="relative z-20 flex items-center justify-between px-6 py-5 sm:px-10">
-        <div className="flex items-center gap-2 text-sm font-semibold tracking-widest text-primary">
+      <header className="relative z-30 flex items-center justify-between px-6 py-5 sm:px-10">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-primary sm:text-sm">
           <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-          ENVIROX RESEARCH
-          <span className="mx-2 text-muted-foreground">|</span>
-          <span className="text-foreground/80">Stanford Accelerator for Sustainability</span>
+          ENVIROX
+          <span className="mx-2 text-muted-foreground hidden sm:inline">|</span>
+          <span className="text-foreground/70 hidden sm:inline">Trust Layer for E-Commerce</span>
         </div>
         <button
           aria-label="Toggle sound"
@@ -74,157 +98,132 @@ function Index() {
         </button>
       </header>
 
-      {/* Hero scene */}
-      <section className="perspective-scene relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pb-32 pt-6 sm:pb-40">
-        {/* Satellite + mission card (top-left) */}
-        <div className="pointer-events-none absolute left-2 top-2 hidden md:block lg:left-10">
-          <div className="relative">
-            <img
-              src={satellite}
-              alt="EnviroX satellite scanning Earth"
-              width={220}
-              height={220}
-              className="relative z-10 h-44 w-44 animate-float-orbit drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] lg:h-56 lg:w-56"
-            />
-            {/* scanning beam */}
-            <div
-              className="absolute left-16 top-24 h-72 w-44 origin-top -rotate-12 animate-beam blur-md lg:left-20 lg:top-28 lg:h-96 lg:w-56"
-              style={{
-                background:
-                  "linear-gradient(180deg, oklch(0.8 0.2 155 / 0.55), transparent 80%)",
-                clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)",
-              }}
-            />
-          </div>
+      {/* Hero scene — centered stack */}
+      <section
+        ref={sceneRef}
+        className="perspective-scene relative z-10 mx-auto flex min-h-[calc(100vh-160px)] max-w-7xl flex-col items-center justify-start px-4 pt-4 sm:pt-8"
+      >
+        {/* Eyebrow */}
+        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.45em] text-foreground/60 sm:text-xs">
+          Earth Day Mission <span className="mx-3 opacity-40">|</span> Shop Honest
+        </p>
 
-          <div className="pointer-events-auto mt-2 max-w-xs rounded-xl border border-primary/40 bg-card/30 p-5 backdrop-blur-md shadow-card-glow tilt-card">
-            <p className="text-[11px] font-bold tracking-[0.25em] text-primary">
-              EARTH DAY MISSION
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-foreground/80">
-              Step into the shoes of a conscious shopper — let EnviroX expose greenwashing and reveal verified alternatives.
-            </p>
-            <button
-              onClick={downloadExtension}
-              className="mt-4 inline-flex items-center justify-center rounded-full border border-primary/70 bg-transparent px-5 py-2 text-sm font-semibold text-foreground transition hover:bg-primary/15"
+        {/* Massive title */}
+        <h1
+          className="relative z-20 mt-6 text-center font-black uppercase leading-[0.85] tracking-tight text-foreground"
+          style={{
+            fontSize: "clamp(3.5rem, 16vw, 13rem)",
+            textShadow:
+              "0 0 60px oklch(0.78 0.18 155 / 0.45), 0 10px 40px oklch(0 0 0 / 0.6)",
+            transform: `translate3d(${parallax.x * 6}px, ${parallax.y * 4}px, 0)`,
+          }}
+        >
+          Enviro<span className="text-primary">X</span>
+        </h1>
+
+        {/* Tagline + CTA */}
+        <div
+          className="relative z-20 mt-4 flex flex-col items-center gap-5"
+          style={{ transform: `translate3d(${parallax.x * 4}px, ${parallax.y * 3}px, 0)` }}
+        >
+          <p className="max-w-xl text-center text-sm text-foreground/80 sm:text-base">
+            Catch greenwashing in real-time and discover verified eco-friendly
+            alternatives while you shop on Amazon, Shopify, eBay & more.
+          </p>
+          <button
+            onClick={downloadExtension}
+            className="group relative inline-flex items-center gap-3 rounded-full bg-cta px-8 py-4 text-base font-bold text-primary-foreground shadow-glow transition hover:scale-105 sm:px-10 sm:py-5 sm:text-lg"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download Extension
+          </button>
+          <button
+            onClick={() => setSpinning((s) => !s)}
+            aria-pressed={spinning}
+            className="flex items-center gap-2 rounded-full border border-primary/40 bg-card/50 px-4 py-2 text-xs font-semibold text-foreground/90 backdrop-blur-md transition hover:bg-card/80"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={spinning ? "animate-spin-slow" : ""}
             >
-              Launch Mission
-            </button>
-          </div>
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            {spinning ? "Pause Rotation" : "Rotate Earth"}
+          </button>
         </div>
 
-        {/* Title block */}
-        <div className="relative z-10 mt-4 flex w-full flex-col items-center text-center">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.4em] text-foreground/70">
-            EnviroX Research <span className="mx-3 opacity-40">|</span> Trust Layer for E-Commerce
-          </p>
-          <h1 className="sr-only">EnviroX — Real-time greenwashing detection</h1>
-          <img
-            src={enviroxTitle}
-            alt="EnviroX"
-            width={1600}
-            height={640}
-            className="mx-auto w-[78%] max-w-3xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:w-[70%]"
-          />
-          <p className="mt-2 text-2xl font-extrabold uppercase tracking-[0.3em] text-foreground/90 sm:text-3xl">
-            Shop Honest
-          </p>
-        </div>
-
-        {/* Earth + CTA */}
-        <div className="relative mt-10 flex w-full justify-center">
-          <div className="relative perspective-scene">
-            {/* Outer atmospheric halo */}
+        {/* Earth — centered, behind/under title */}
+        <div
+          className="pointer-events-none relative mt-[-2rem] flex w-full justify-center sm:mt-[-3rem]"
+          style={{ transform: `translate3d(${parallax.x * -10}px, ${parallax.y * -6}px, 0)` }}
+        >
+          <div className="relative">
+            {/* Atmospheric halo */}
             <div
-              className="pointer-events-none absolute inset-0 -z-10 m-auto h-[140%] w-[140%] animate-pulse-glow rounded-full blur-3xl"
+              className="pointer-events-none absolute inset-0 -z-10 m-auto h-[130%] w-[130%] animate-pulse-glow rounded-full blur-3xl"
               style={{
                 background:
-                  "radial-gradient(circle, oklch(0.78 0.2 175 / 0.55) 0%, oklch(0.65 0.18 200 / 0.25) 40%, transparent 70%)",
+                  "radial-gradient(circle, oklch(0.78 0.2 175 / 0.55) 0%, oklch(0.65 0.18 200 / 0.22) 45%, transparent 70%)",
               }}
             />
-            {/* Inner cyan rim glow */}
+            {/* Cyan rim */}
             <div
-              className="pointer-events-none absolute inset-0 -z-10 m-auto h-[108%] w-[108%] rounded-full blur-md"
+              className="pointer-events-none absolute inset-0 -z-10 m-auto h-[106%] w-[106%] rounded-full blur-md"
               style={{
                 background:
-                  "radial-gradient(circle, transparent 60%, oklch(0.82 0.18 180 / 0.55) 72%, transparent 80%)",
+                  "radial-gradient(circle, transparent 62%, oklch(0.85 0.18 180 / 0.6) 73%, transparent 80%)",
               }}
             />
 
-            {/* Earth wrapper for tilt + rotation */}
+            {/* Earth wrapper */}
             <div className="relative animate-float-slow [transform-style:preserve-3d]">
-              <div
-                className={`earth-tilt relative ${spinning ? "animate-spin-very-slow" : ""}`}
-              >
+              <div className={`earth-tilt relative ${spinning ? "animate-spin-very-slow" : ""}`}>
                 <img
                   src={earth}
-                  alt="3D Earth"
+                  alt="EnviroX 3D Earth"
                   width={1280}
                   height={1280}
-                  className="h-[420px] w-[420px] select-none drop-shadow-[0_60px_80px_rgba(0,0,0,0.75)] sm:h-[600px] sm:w-[600px] md:h-[760px] md:w-[760px] lg:h-[860px] lg:w-[860px]"
-                />
-                {/* Sphere shading overlay for extra 3D depth */}
-                <div
-                  className="pointer-events-none absolute inset-0 rounded-full mix-blend-overlay"
-                  style={{
-                    background:
-                      "radial-gradient(circle at 30% 25%, oklch(1 0 0 / 0.35) 0%, transparent 38%), radial-gradient(circle at 72% 78%, oklch(0.05 0.05 240 / 0.6) 0%, transparent 55%)",
-                  }}
-                />
-                {/* Atmosphere ring on sphere edge */}
-                <div
-                  className="pointer-events-none absolute inset-0 rounded-full"
-                  style={{
-                    boxShadow:
-                      "inset 0 0 80px 10px oklch(0.85 0.18 180 / 0.4), inset -40px -40px 100px 0 oklch(0.05 0.05 240 / 0.5)",
-                  }}
+                  className="h-[340px] w-[340px] select-none drop-shadow-[0_50px_70px_rgba(0,0,0,0.7)] sm:h-[480px] sm:w-[480px] md:h-[600px] md:w-[600px] lg:h-[720px] lg:w-[720px]"
                 />
               </div>
             </div>
 
             {/* Orbit rings */}
-            <div className="pointer-events-none absolute inset-0 m-auto h-[118%] w-[118%] -translate-y-2 rounded-full border border-primary/25 animate-spin-slow" />
+            <div className="pointer-events-none absolute inset-0 m-auto h-[118%] w-[118%] rounded-full border border-primary/25 animate-spin-slow" />
             <div
-              className="pointer-events-none absolute inset-0 m-auto h-[135%] w-[135%] rounded-full border border-accent/15 animate-spin-slow"
+              className="pointer-events-none absolute inset-0 m-auto h-[138%] w-[138%] rounded-full border border-accent/15 animate-spin-slow"
               style={{ animationDirection: "reverse", animationDuration: "120s" }}
             />
 
-            {/* Accept mission CTA */}
-            <button
-              onClick={downloadExtension}
-              className="absolute left-1/2 top-[20%] z-20 -translate-x-1/2 rounded-full bg-cta px-8 py-4 text-base font-bold text-primary-foreground shadow-glow transition hover:scale-105 sm:px-10 sm:py-5 sm:text-lg"
-            >
-              Download Extension
-            </button>
-
-            {/* Rotate on command */}
-            <button
-              onClick={() => setSpinning((s) => !s)}
-              aria-pressed={spinning}
-              className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-primary/40 bg-card/50 px-4 py-2 text-xs font-semibold text-foreground/90 backdrop-blur-md transition hover:bg-card/80 sm:bottom-8 sm:text-sm"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={spinning ? "animate-spin-slow" : ""}
-              >
-                <polyline points="23 4 23 10 17 10" />
-                <polyline points="1 20 1 14 7 14" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
-              {spinning ? "Pause Rotation" : "Rotate Earth"}
-            </button>
+            {/* Satellite orbiting */}
+            <div className="pointer-events-none absolute inset-0 m-auto h-[140%] w-[140%] animate-spin-slow" style={{ animationDuration: "40s" }}>
+              <img
+                src={satellite}
+                alt=""
+                aria-hidden
+                width={140}
+                height={140}
+                className="absolute -top-6 left-1/2 h-20 w-20 -translate-x-1/2 drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)] sm:h-28 sm:w-28"
+              />
+            </div>
           </div>
         </div>
 
         {/* Feature pills */}
-        <div className="relative z-10 mt-16 grid w-full max-w-4xl grid-cols-1 gap-4 px-4 sm:grid-cols-3">
+        <div className="relative z-20 mt-8 grid w-full max-w-4xl grid-cols-1 gap-3 px-2 sm:mt-12 sm:grid-cols-3 sm:gap-4">
           {[
             { t: "Greenwashing Radar", d: "Flags vague eco-claims on product pages instantly." },
             { t: "Verified Alternatives", d: "Suggests certified eco-friendly products in real-time." },
@@ -232,18 +231,18 @@ function Index() {
           ].map((f) => (
             <div
               key={f.t}
-              className="rounded-2xl border border-border/60 bg-card/30 p-5 backdrop-blur-md shadow-card-glow transition hover:border-primary/60"
+              className="rounded-2xl border border-border/60 bg-card/30 p-4 backdrop-blur-md shadow-card-glow transition hover:border-primary/60 sm:p-5"
             >
               <p className="text-sm font-bold text-primary">{f.t}</p>
-              <p className="mt-1 text-sm text-foreground/75">{f.d}</p>
+              <p className="mt-1 text-xs text-foreground/75 sm:text-sm">{f.d}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Bottom bar */}
-      <footer className="relative z-20 flex items-center justify-between px-6 pb-6 sm:px-10">
-        <button className="flex items-center gap-2 rounded-full border border-border/60 bg-card/40 px-4 py-2 text-sm text-foreground/80 backdrop-blur transition hover:bg-card/70">
+      <footer className="relative z-20 mt-10 flex items-center justify-between px-6 pb-6 sm:px-10">
+        <button className="flex items-center gap-2 rounded-full border border-border/60 bg-card/40 px-4 py-2 text-xs text-foreground/80 backdrop-blur transition hover:bg-card/70 sm:text-sm">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="8" y1="6" x2="21" y2="6" />
             <line x1="8" y1="12" x2="21" y2="12" />
@@ -252,16 +251,11 @@ function Index() {
             <line x1="3" y1="12" x2="3.01" y2="12" />
             <line x1="3" y1="18" x2="3.01" y2="18" />
           </svg>
-          Resources & more
+          Resources
         </button>
-        <button className="flex items-center gap-2 rounded-full border border-border/60 bg-card/40 px-4 py-2 text-sm text-foreground/80 backdrop-blur transition hover:bg-card/70">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          </svg>
-          English (US)
-        </button>
+        <p className="text-[10px] text-foreground/50 sm:text-xs">
+          © {new Date().getFullYear()} EnviroX · Shop Honest
+        </p>
       </footer>
     </main>
   );
